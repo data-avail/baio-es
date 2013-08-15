@@ -14,13 +14,9 @@
     , "repository": {
         "type" : "git"
         , "url" : "git://github.com/data-avail/baio-es"
-},
+    },
     "devDependencies": {
         "should" : "latest",
         "mocha" : "latest"
     }
-    /*
-    ,"scripts":{
-        "test" : "mocha es.test.js --ignore-leaks -t 10s"
-     }*/
 }
