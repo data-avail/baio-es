@@ -1,0 +1,26 @@
+{ "name": "baio-es"
+    , "description": "Elastic search basic operations"
+    , "version": "0.0.1"
+    , "url": "http://github.com/data-avail/es"
+    , "author": "Max Putilov <max.putilov@gmail.com>"
+    ,"keywords": [
+    "es", "elastic search"
+]
+    , "engines": ["node >= 0.4.0"]
+    , "main": "./es.js"
+    , "dependencies": {
+    "request": "latest",
+    "async": "latest"}
+    , "repository": {
+        "type" : "git"
+        , "url" : "git://github.com/data-avail/baio-es"
+},
+    "devDependencies": {
+        "should" : "latest",
+        "mocha" : "latest"
+    }
+    /*
+    ,"scripts":{
+        "test" : "mocha es.test.js --ignore-leaks -t 10s"
+     }*/
+}
