@@ -113,7 +113,13 @@
         body = JSON.parse(res.body);
         if (!body.error) {
           return done(null, body.hits.hits.map(function(m) {
-            return m._source;
+            var src;
+
+            src = m._source;
+            if (m.highlight) {
+              src._highlight = m.highlight;
+            }
+            return src;
           }));
         } else {
           return done(body.error);

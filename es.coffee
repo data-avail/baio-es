@@ -144,7 +144,11 @@ query = (uri, index, q, done) ->
     if !err
       body = JSON.parse(res.body)
       if !body.error
-        done null, body.hits.hits.map (m) -> m._source
+        done null, body.hits.hits.map (m) ->
+          src = m._source
+          if m.highlight
+            src._highlight = m.highlight
+          src
       else
         done body.error
     else
