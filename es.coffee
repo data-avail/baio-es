@@ -30,19 +30,25 @@ req = require "request"
 #
 
 bulk = (uri, index, docs, done) ->
+  if !Array.isArray(docs)
+    done "docs not array"
   if !docs.length
     done(null, [])
     return
   res = ""
   for doc in docs
-    obj = { "index" : { "_index" : index, "_type" : doc._type, "_id" : doc._id } }
+    obj = { }
+    obj[if doc._action then doc._action else "index"] =
+    { "_index" : index, "_type" : doc._type, "_id" : doc._id }
     res += JSON.stringify(obj)
     res += "\r\n"
     obj = JSON.parse(JSON.stringify(doc))
     delete obj._id
     delete obj._type
+    delete obj._action
     res += JSON.stringify(obj)
     res += "\r\n"
+    console.log res
   _r_oper uri, index, "_bulk", "post", res, done
 
 map = (uri, fromIndex, toIndex, docsCount, map, done) ->
@@ -136,7 +142,11 @@ bkp = (opts, done) ->
 query = (uri, index, q, done) ->
   req.post uri : "#{uri}/#{index}/_search", body : JSON.stringify(q), (err, res) ->
     if !err
-      done null, JSON.parse(res.body).hits.hits.map (m) -> m._source
+      body = JSON.parse(res.body)
+      if !body.error
+        done null, body.hits.hits.map (m) -> m._source
+      else
+        done body.error
     else
       done err
 
@@ -153,10 +163,12 @@ _r_oper = (uri, index, oper, method, body, done) ->
     opts.json = body
 
   req opts, (err, res) ->
-    err = res.body if res.body.error
     if !err
       res = if res.body and typeof res.body == "string" then JSON.parse res.body else res.body
-      done err, res
+      if !res.error
+        done err, res
+      else
+        done res.error
     else
       done err
 

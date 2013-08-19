@@ -11,6 +11,9 @@
   bulk = function(uri, index, docs, done) {
     var doc, obj, res, _i, _len;
 
+    if (!Array.isArray(docs)) {
+      done("docs not array");
+    }
     if (!docs.length) {
       done(null, []);
       return;
@@ -18,20 +21,21 @@
     res = "";
     for (_i = 0, _len = docs.length; _i < _len; _i++) {
       doc = docs[_i];
-      obj = {
-        "index": {
-          "_index": index,
-          "_type": doc._type,
-          "_id": doc._id
-        }
+      obj = {};
+      obj[doc._action ? doc._action : "index"] = {
+        "_index": index,
+        "_type": doc._type,
+        "_id": doc._id
       };
       res += JSON.stringify(obj);
       res += "\r\n";
       obj = JSON.parse(JSON.stringify(doc));
       delete obj._id;
       delete obj._type;
+      delete obj._action;
       res += JSON.stringify(obj);
       res += "\r\n";
+      console.log(res);
     }
     return _r_oper(uri, index, "_bulk", "post", res, done);
   };
@@ -103,10 +107,17 @@
       uri: "" + uri + "/" + index + "/_search",
       body: JSON.stringify(q)
     }, function(err, res) {
+      var body;
+
       if (!err) {
-        return done(null, JSON.parse(res.body).hits.hits.map(function(m) {
-          return m._source;
-        }));
+        body = JSON.parse(res.body);
+        if (!body.error) {
+          return done(null, body.hits.hits.map(function(m) {
+            return m._source;
+          }));
+        } else {
+          return done(body.error);
+        }
       } else {
         return done(err);
       }
@@ -133,12 +144,13 @@
       opts.json = body;
     }
     return req(opts, function(err, res) {
-      if (res.body.error) {
-        err = res.body;
-      }
       if (!err) {
         res = res.body && typeof res.body === "string" ? JSON.parse(res.body) : res.body;
-        return done(err, res);
+        if (!res.error) {
+          return done(err, res);
+        } else {
+          return done(res.error);
+        }
       } else {
         return done(err);
       }
@@ -162,7 +174,3 @@
   exports.query = query;
 
 }).call(this);
-
-/*
-//@ sourceMappingURL=es.map
-*/
