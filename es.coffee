@@ -146,7 +146,7 @@ query = (uri, index, q, done) ->
     delete q._type
   uri += "_search"
   req.post uri : uri, body : JSON.stringify(q), (err, res) ->
-    if !err
+    if !err and !body
       body = JSON.parse(res.body)
       if !body.error
         done null, body.hits.hits.map (m) ->

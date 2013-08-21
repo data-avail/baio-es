@@ -115,7 +115,7 @@
     }, function(err, res) {
       var body;
 
-      if (!err) {
+      if (!err && !body) {
         body = JSON.parse(res.body);
         if (!body.error) {
           return done(null, body.hits.hits.map(function(m) {
