@@ -140,7 +140,12 @@ bkp = (opts, done) ->
 
 
 query = (uri, index, q, done) ->
-  req.post uri : "#{uri}/#{index}/_search", body : JSON.stringify(q), (err, res) ->
+  uri = "#{uri}/#{index}/"
+  if q._type
+    uri += q._type + "/"
+    delete q._type
+  uri += "_search"
+  req.post uri : uri, body : JSON.stringify(q), (err, res) ->
     if !err
       body = JSON.parse(res.body)
       if !body.error

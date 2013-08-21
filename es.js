@@ -103,8 +103,14 @@
   };
 
   query = function(uri, index, q, done) {
+    uri = "" + uri + "/" + index + "/";
+    if (q._type) {
+      uri += q._type + "/";
+      delete q._type;
+    }
+    uri += "_search";
     return req.post({
-      uri: "" + uri + "/" + index + "/_search",
+      uri: uri,
       body: JSON.stringify(q)
     }, function(err, res) {
       var body;
