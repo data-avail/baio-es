@@ -146,7 +146,7 @@ query = (uri, index, q, done) ->
     delete q._type
   uri += "_search"
   req.post uri : uri, body : JSON.stringify(q), (err, res) ->
-    if !err and !body
+    if !err and res.body
       body = JSON.parse(res.body)
       if !body.error
         done null, body.hits.hits.map (m) ->
@@ -172,8 +172,8 @@ _r_oper = (uri, index, oper, method, body, done) ->
     opts.json = body
 
   req opts, (err, res) ->
-    if !err
-      res = if res.body and typeof res.body == "string" then JSON.parse res.body else res.body
+    if !err and res.body
+      res = if typeof res.body == "string" then JSON.parse(res.body) else res.body
       if !res.error
         done err, res
       else

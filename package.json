@@ -1,6 +1,6 @@
 { "name": "baio-es"
     , "description": "Elastic search basic operations"
-    , "version": "0.0.1"
+    , "version": "0.0.3"
     , "url": "http://github.com/data-avail/es"
     , "author": "Max Putilov <max.putilov@gmail.com>"
     ,"keywords": [

@@ -115,7 +115,7 @@
     }, function(err, res) {
       var body;
 
-      if (!err && !body) {
+      if (!err && res.body) {
         body = JSON.parse(res.body);
         if (!body.error) {
           return done(null, body.hits.hits.map(function(m) {
@@ -156,8 +156,8 @@
       opts.json = body;
     }
     return req(opts, function(err, res) {
-      if (!err) {
-        res = res.body && typeof res.body === "string" ? JSON.parse(res.body) : res.body;
+      if (!err && res.body) {
+        res = typeof res.body === "string" ? JSON.parse(res.body) : res.body;
         if (!res.error) {
           return done(err, res);
         } else {
