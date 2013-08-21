@@ -171,7 +171,9 @@ _r_oper = (uri, index, oper, method, body, done) ->
   else if typeof body == "object"
     opts.json = body
 
+  console.log opts
   req opts, (err, res) ->
+    console.log err, res
     if !err and res.body
       res = if typeof res.body == "string" then JSON.parse(res.body) else res.body
       if !res.error

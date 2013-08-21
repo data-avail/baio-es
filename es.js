@@ -155,7 +155,9 @@
     } else if (typeof body === "object") {
       opts.json = body;
     }
+    console.log(opts);
     return req(opts, function(err, res) {
+      console.log(err, res);
       if (!err && res.body) {
         res = typeof res.body === "string" ? JSON.parse(res.body) : res.body;
         if (!res.error) {
