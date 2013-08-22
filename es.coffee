@@ -13,6 +13,13 @@ fs = require "fs"
 req = require "request"
 extend = require("util")._extend
 
+_config = null
+
+#uri
+#timeout
+setConfig = (config) ->
+  _config = config
+
 # ##bulk API##
 
 #**bulk = (uri, index, docs, done)**
@@ -139,40 +146,64 @@ bkp = (opts, done) ->
   ], done
 
 
-query = (uri, index, q, done) ->
-  uri = "#{uri}/#{index}/"
-  if q._type
-    uri += q._type + "/"
-    delete q._type
-  uri += "_search"
-  req.post uri : uri, body : JSON.stringify(q), (err, res) ->
-    if !err and res.body
-      body = JSON.parse(res.body)
-      if !body.error
-        done null, body.hits.hits.map (m) ->
-          src = m._source
-          if m.highlight
-            src._highlight = m.highlight
-          src
-      else
-        done body.error
-    else
-      done err
+#uri
+#index
+#type
+#body
+query = (opts, done) ->
+  params = extend {}, opts
+  params.oper = "_search"
+  _r_oper params, (err, data) ->
+    if !err
+      data = data.hits.hits.map (m) ->
+        src = m._source
+        if m.highlight
+          src._highlight = m.highlight
+        src
+    done err, data
+
+#uri
+#index
+#type
+#body
+count = (opts, done) ->
+  params = extend {}, opts
+  params.oper = "_count"
+  params.body = params.body.query if params.body and params.body.query
+  _r_oper params, (err, data) ->
+    if !err
+      data = count : data.count
+    done err, data
 
 # ##Private API##
 
-_r_oper = (opts, done) ->
+_r_oper = (params, done) ->
   #uri, index, oper, method, body
-  opts = extend({}, opts)
-  opts.uri = "#{opts.uri}/#{opts.index}"
-  opts.uri += "/" + opts.oper if opts.oper
-  if typeof opts.body == "object"
-    opts.json = opts.body
-    delete opts.body
+  ### uri ###
+  opts =
+    uri : params.uri
+  opts.uri ?= _config.uri
+  opts.uri += "/#{params.index}"
+  if params.type
+    opts.uri += "/" + params.type
+  if params.oper
+    opts.uri += "/" + params.oper
+  ### body ###
+  if typeof params.body == "object"
+    opts.json = params.body
+  else
+    opts.body = params.body
+  ### method ###
+  opts.method = params.method if params.method
+  console.log opts
   req opts, (err, res) ->
-    console.log "es.req.resp", err, res.body
     if !err and res.body
-      res = if typeof res.body == "string" then JSON.parse(res.body) else res.body
+      res = res.body
+      try
+        res = JSON.parse(res) if typeof res == "string"
+      catch e
+        done res
+        return
       if !res.error
         done err, res
       else
@@ -180,6 +211,7 @@ _r_oper = (opts, done) ->
     else
       done err
 
+exports.setConfig = setConfig
 exports.createIndex = createIndex
 exports.deleteIndex = deleteIndex
 exports.getIndex = getIndex
@@ -189,4 +221,5 @@ exports.bulk = bulk
 exports.map = map
 exports.bkp = bkp
 exports.query = query
+exports.count = count
 
