@@ -11,6 +11,7 @@
 async = require "async"
 fs = require "fs"
 req = require "request"
+extend = require("util")._extend
 
 # ##bulk API##
 
@@ -49,7 +50,7 @@ bulk = (uri, index, docs, done) ->
     res += JSON.stringify(obj)
     res += "\r\n"
     console.log res
-  _r_oper uri, index, "_bulk", "post", res, done
+  _r_oper uri : uri, index : index, oper : "_bulk", method : "post", body : res, done
 
 map = (uri, fromIndex, toIndex, docsCount, map, done) ->
   docsCount ?= 10000
@@ -77,8 +78,7 @@ copy = (uri, fromIndex, toIndex, done) ->
 # + `opts.index {string}` - name of the index
 
 getIndex = (opts, done) ->
-  _r uri : opts.uri, opts.index, "get", null, done
-
+  _r_oper uri : opts.uri, index : opts.index, method : "get", done
 
 #**deleteIndex (opts)**
 #
@@ -92,7 +92,7 @@ getIndex = (opts, done) ->
 # + `opts.index {string}` - name of the index
 
 deleteIndex = (opts, done) ->
-  _r opts.uri, opts.index, "delete", null, done
+  _r_oper uri : opts.uri, index : opts.index, method : "delete", done
 
 #**createIndex (opts)**
 #
@@ -112,7 +112,7 @@ createIndex = (opts, done) ->
   settings = opts.settings
   if !settings
     settings = JSON.parse fs.readFileSync opts.settingsPath, "utf-8"
-  _r opts.uri, opts.index, "post", settings, done
+  _r_oper uri : opts.uri, index : opts.index, method : "post", body : settings, done
 
 #**bkp (opts)**
 #
@@ -160,20 +160,17 @@ query = (uri, index, q, done) ->
       done err
 
 # ##Private API##
-_r = (uri, index, method, body, done) ->
-  _r_oper uri, index, null, method, body, done
 
-_r_oper = (uri, index, oper, method, body, done) ->
-  opts = uri : "#{uri}/#{index}", method: method
-  opts.uri += "/" + oper if oper
-  if typeof body == "string"
-    opts.body = body
-  else if typeof body == "object"
-    opts.json = body
-
-  console.log opts
+_r_oper = (opts, done) ->
+  #uri, index, oper, method, body
+  opts = extend({}, opts)
+  opts.uri = "#{opts.uri}/#{opts.index}"
+  opts.uri += "/" + opts.oper if opts.oper
+  if typeof opts.body == "object"
+    opts.json = opts.body
+    delete opts.body
   req opts, (err, res) ->
-    console.log err, res
+    console.log "es.req.resp", err, res.body
     if !err and res.body
       res = if typeof res.body == "string" then JSON.parse(res.body) else res.body
       if !res.error
