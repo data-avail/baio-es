@@ -178,12 +178,12 @@
     if ((_ref = opts.uri) == null) {
       opts.uri = _config.uri;
     }
-    opts.uri += "/" + params.index;
+    opts.uri += '/' + params.index;
     if (params.type) {
-      opts.uri += "/" + params.type;
+      opts.uri += '/' + params.type;
     }
     if (params.oper) {
-      opts.uri += "/" + params.oper;
+      opts.uri += '/' + params.oper;
     }
     /* body
     */
