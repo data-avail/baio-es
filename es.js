@@ -99,11 +99,9 @@
   };
 
   deleteIndex = function(opts, done) {
-    return _r_oper({
-      uri: opts.uri,
-      index: opts.index,
+    return _r_oper(extend({
       method: "delete"
-    }, done);
+    }, opts), done);
   };
 
   createIndex = function(opts, done) {
@@ -112,12 +110,10 @@
     if (!settings) {
       settings = JSON.parse(fs.readFileSync(opts.settingsPath, "utf-8"));
     }
-    return _r_oper({
-      uri: opts.uri,
-      index: opts.index,
+    return _r_oper(extend({
       method: "post",
       body: settings
-    }, done);
+    }, opts), done);
   };
 
   bkp = function(opts, done) {
@@ -145,8 +141,9 @@
 
   count = function(opts, done) {
     var params;
-    params = extend({}, opts);
-    params.oper = "_count";
+    params = extend({
+      oper: "_count"
+    }, opts);
     if (params.body && params.body.query) {
       params.body = params.body.query;
     }

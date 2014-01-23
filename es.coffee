@@ -103,7 +103,7 @@ getIndex = (opts, done) ->
 # + `opts.index {string}` - name of the index
 
 deleteIndex = (opts, done) ->
-  _r_oper uri : opts.uri, index : opts.index, method : "delete", done
+  _r_oper extend(method : "delete", opts), done
 
 #**createIndex (opts)**
 #
@@ -123,7 +123,7 @@ createIndex = (opts, done) ->
   settings = opts.settings
   if !settings
     settings = JSON.parse fs.readFileSync opts.settingsPath, "utf-8"
-  _r_oper uri : opts.uri, index : opts.index, method : "post", body : settings, done
+  _r_oper extend({method : "post", body : settings}, opts), done
 
 #**bkp (opts)**
 #
@@ -165,8 +165,7 @@ query = (opts, body, done) ->
 #type
 #body
 count = (opts, done) ->
-  params = extend {}, opts
-  params.oper = "_count"
+  params = extend {oper : "_count"}, opts
   params.body = params.body.query if params.body and params.body.query
   _r_oper params, (err, data) ->
     if !err
