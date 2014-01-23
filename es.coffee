@@ -37,7 +37,7 @@ setConfig = (config) ->
 #     + `_type` - type of es document
 #
 
-bulk = (uri, index, docs, done) ->
+bulk = (opts, docs, done) ->
   if !Array.isArray(docs)
     done "docs not array"
   if !docs.length
@@ -46,18 +46,19 @@ bulk = (uri, index, docs, done) ->
   res = ""
   for doc in docs
     obj = { }
-    obj[if doc._action then doc._action else "index"] =
-    { "_index" : index, "_type" : doc._type, "_id" : doc._id }
+    index = opts.index
+    action = if doc._action then doc._action else "index"
+    type = if doc._type then doc._type else opts.type
+    obj[action] = _index : opts.index, _type : type, _id : doc._id
     res += JSON.stringify(obj)
     res += "\r\n"
-    obj = JSON.parse(JSON.stringify(doc))
+    obj = extend({}, doc)
     delete obj._id
     delete obj._type
     delete obj._action
     res += JSON.stringify(obj)
     res += "\r\n"
-    console.log res
-  _r_oper uri : uri, index : index, oper : "_bulk", method : "post", body : res, done
+  _r_oper uri : opts.uri, index : opts.index, oper : "_bulk", method : "post", body : res, done
 
 map = (uri, fromIndex, toIndex, docsCount, map, done) ->
   docsCount ?= 10000
@@ -150,17 +151,10 @@ bkp = (opts, done) ->
 #index
 #type
 #body
-query = (opts, done) ->
-  params = extend {}, opts
+query = (opts, body, done) ->
+  params = extend {body : body}, opts
   params.oper = "_search"
-  _r_oper params, (err, data) ->
-    if !err
-      data = data.hits.hits.map (m) ->
-        src = m._source
-        if m.highlight
-          src._highlight = m.highlight
-        src
-    done err, data
+  _r_oper params, done
 
 #uri
 #index
@@ -183,6 +177,8 @@ _r_oper = (params, done) ->
   opts =
     uri : params.uri
   opts.uri ?= _config.uri
+  index = params.index
+  index += params.index_perfix if params.index_perfix
   opts.uri += '/' + params.index
   if params.type
     opts.uri += '/' + params.type
