@@ -46,19 +46,22 @@ bulk = (opts, docs, done) ->
   res = ""
   for doc in docs
     obj = { }
-    index = opts.index
-    action = if doc._action then doc._action else "index"
+    index = doc._index
+    index ?= opts.index
+    index = opts.index_prefix + "." + index if opts.index_prefix
+    action = if doc._action then doc._action else (if opts.action then opts.action else "index")
     type = if doc._type then doc._type else opts.type
-    obj[action] = _index : opts.index, _type : type, _id : doc._id
+    obj[action] = _index : index, _type : type, _id : doc._id
     res += JSON.stringify(obj)
     res += "\r\n"
-    obj = extend({}, doc)
-    delete obj._id
-    delete obj._type
-    delete obj._action
-    res += JSON.stringify(obj)
+    _doc = extend({}, doc)
+    delete _doc._id
+    delete _doc._index
+    delete _doc._type
+    delete _doc._action
+    res += JSON.stringify(_doc)
     res += "\r\n"
-  _r_oper uri : opts.uri, index : opts.index, oper : "_bulk", method : "post", body : res, done
+  _r_oper uri : opts.uri, oper : "_bulk", method : "post", body : res, done
 
 map = (uri, fromIndex, toIndex, docsCount, map, done) ->
   docsCount ?= 10000
@@ -153,8 +156,9 @@ bkp = (opts, done) ->
 #body
 query = (opts, body, done) ->
   params = extend {body : body}, opts
-  params.oper = "_search"
+  params.oper = "_search" if !opts.id
   _r_oper params, done
+
 
 #uri
 #index
@@ -172,18 +176,19 @@ count = (opts, done) ->
 # ##Private API##
 
 _r_oper = (params, done) ->
-  #uri, index, oper, method, body
-  ### uri ###
   opts =
     uri : params.uri
   opts.uri ?= _config.uri
   index = params.index
-  index += params.index_perfix if params.index_perfix
-  opts.uri += '/' + params.index
+  index = params.index_prefix + "." + index if params.index_prefix
+  if index
+    opts.uri += '/' + index
   if params.type
     opts.uri += '/' + params.type
   if params.oper
     opts.uri += '/' + params.oper
+  if params.id
+    opts.uri += '/' + params.id
   ### body ###
   if typeof params.body == "object"
     opts.json = params.body

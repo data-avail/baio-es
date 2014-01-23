@@ -17,7 +17,7 @@
   };
 
   bulk = function(opts, docs, done) {
-    var action, doc, index, obj, res, type, _i, _len;
+    var action, doc, index, obj, res, type, _doc, _i, _len;
     if (!Array.isArray(docs)) {
       done("docs not array");
     }
@@ -29,26 +29,32 @@
     for (_i = 0, _len = docs.length; _i < _len; _i++) {
       doc = docs[_i];
       obj = {};
-      index = opts.index;
-      action = doc._action ? doc._action : "index";
+      index = doc._index;
+      if (index == null) {
+        index = opts.index;
+      }
+      if (opts.index_prefix) {
+        index = opts.index_prefix + "." + index;
+      }
+      action = doc._action ? doc._action : (opts.action ? opts.action : "index");
       type = doc._type ? doc._type : opts.type;
       obj[action] = {
-        _index: opts.index,
+        _index: index,
         _type: type,
         _id: doc._id
       };
       res += JSON.stringify(obj);
       res += "\r\n";
-      obj = extend({}, doc);
-      delete obj._id;
-      delete obj._type;
-      delete obj._action;
-      res += JSON.stringify(obj);
+      _doc = extend({}, doc);
+      delete _doc._id;
+      delete _doc._index;
+      delete _doc._type;
+      delete _doc._action;
+      res += JSON.stringify(_doc);
       res += "\r\n";
     }
     return _r_oper({
       uri: opts.uri,
-      index: opts.index,
       oper: "_bulk",
       method: "post",
       body: res
@@ -131,7 +137,9 @@
     params = extend({
       body: body
     }, opts);
-    params.oper = "_search";
+    if (!opts.id) {
+      params.oper = "_search";
+    }
     return _r_oper(params, done);
   };
 
@@ -153,8 +161,6 @@
   };
 
   _r_oper = function(params, done) {
-    /* uri*/
-
     var index, opts;
     opts = {
       uri: params.uri
@@ -163,15 +169,20 @@
       opts.uri = _config.uri;
     }
     index = params.index;
-    if (params.index_perfix) {
-      index += params.index_perfix;
+    if (params.index_prefix) {
+      index = params.index_prefix + "." + index;
     }
-    opts.uri += '/' + params.index;
+    if (index) {
+      opts.uri += '/' + index;
+    }
     if (params.type) {
       opts.uri += '/' + params.type;
     }
     if (params.oper) {
       opts.uri += '/' + params.oper;
+    }
+    if (params.id) {
+      opts.uri += '/' + params.id;
     }
     /* body*/
 
