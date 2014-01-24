@@ -59,9 +59,11 @@ bulk = (opts, docs, done) ->
     delete _doc._index
     delete _doc._type
     delete _doc._action
-    res += JSON.stringify(_doc)
-    res += "\r\n"
-  _r_oper uri : opts.uri, oper : "_bulk", method : "post", body : res, done
+    if action != "delete"
+      res += JSON.stringify(_doc)
+      res += "\r\n"
+  oper_opts = extend(extend({}, opts), {uri : opts.uri, index : null, type : null, oper : "_bulk", method : "post", body : res})
+  _r_oper oper_opts, done
 
 map = (uri, fromIndex, toIndex, docsCount, map, done) ->
   docsCount ?= 10000
@@ -179,7 +181,7 @@ _r_oper = (params, done) ->
     uri : params.uri
   opts.uri ?= _config.uri
   index = params.index
-  index = params.index_prefix + "." + index if params.index_prefix
+  index = params.index_prefix + "." + index if index and params.index_prefix
   if index
     opts.uri += '/' + index
   if params.type
@@ -195,8 +197,10 @@ _r_oper = (params, done) ->
     opts.body = params.body
   ### method ###
   opts.method = params.method if params.method
-  console.log opts
+
   req opts, (err, res) ->
+    if params.debug
+      console.log JSON.stringify(opts), err, JSON.stringify(res.body)
     if !err and res.body
       res = res.body
       try

@@ -17,7 +17,7 @@
   };
 
   bulk = function(opts, docs, done) {
-    var action, doc, index, obj, res, type, _doc, _i, _len;
+    var action, doc, index, obj, oper_opts, res, type, _doc, _i, _len;
     if (!Array.isArray(docs)) {
       done("docs not array");
     }
@@ -50,15 +50,20 @@
       delete _doc._index;
       delete _doc._type;
       delete _doc._action;
-      res += JSON.stringify(_doc);
-      res += "\r\n";
+      if (action !== "delete") {
+        res += JSON.stringify(_doc);
+        res += "\r\n";
+      }
     }
-    return _r_oper({
+    oper_opts = extend(extend({}, opts), {
       uri: opts.uri,
+      index: null,
+      type: null,
       oper: "_bulk",
       method: "post",
       body: res
-    }, done);
+    });
+    return _r_oper(oper_opts, done);
   };
 
   map = function(uri, fromIndex, toIndex, docsCount, map, done) {
@@ -166,7 +171,7 @@
       opts.uri = _config.uri;
     }
     index = params.index;
-    if (params.index_prefix) {
+    if (index && params.index_prefix) {
       index = params.index_prefix + "." + index;
     }
     if (index) {
@@ -193,9 +198,11 @@
     if (params.method) {
       opts.method = params.method;
     }
-    console.log(opts);
     return req(opts, function(err, res) {
       var e;
+      if (params.debug) {
+        console.log(JSON.stringify(opts), err, JSON.stringify(res.body));
+      }
       if (!err && res.body) {
         res = res.body;
         try {
