@@ -200,8 +200,8 @@ _r_oper = (params, done) ->
 
   req opts, (err, res) ->
     if params.debug
-      console.log JSON.stringify(opts), err, JSON.stringify(res.body)
-    if !err and res.body
+      console.log JSON.stringify(opts), err, (if res then JSON.stringify(res.body) else null)
+    if !err and res and res.body
       res = res.body
       try
         res = JSON.parse(res) if typeof res == "string"

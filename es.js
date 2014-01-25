@@ -201,9 +201,9 @@
     return req(opts, function(err, res) {
       var e;
       if (params.debug) {
-        console.log(JSON.stringify(opts), err, JSON.stringify(res.body));
+        console.log(JSON.stringify(opts), err, (res ? JSON.stringify(res.body) : null));
       }
-      if (!err && res.body) {
+      if (!err && res && res.body) {
         res = res.body;
         try {
           if (typeof res === "string") {
