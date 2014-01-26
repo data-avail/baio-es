@@ -1,22 +1,27 @@
-{ "name": "baio-es"
-    , "description": "Elastic search basic operations"
-    , "version": "0.0.8"
-    , "url": "http://github.com/data-avail/es"
-    , "author": "Max Putilov <max.putilov@gmail.com>"
-    ,"keywords": [
-    "es", "elastic search"
-]
-    , "engines": ["node >= 0.4.0"]
-    , "main": "./es.js"
-    , "dependencies": {
+{
+  "name": "baio-es",
+  "description": "Elastic search basic operations",
+  "version": "0.0.8",
+  "url": "http://github.com/data-avail/es",
+  "author": "Max Putilov <max.putilov@gmail.com>",
+  "keywords": [
+    "es",
+    "elastic search"
+  ],
+  "engines": [
+    "node >= 0.4.0"
+  ],
+  "main": "./es.js",
+  "dependencies": {
     "request": "2.27.0",
-    "async": "latest"}
-    , "repository": {
-        "type" : "git"
-        , "url" : "git://github.com/data-avail/baio-es"
-    },
-    "devDependencies": {
-        "should" : "latest",
-        "mocha" : "latest"
-    }
+    "async": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/data-avail/baio-es"
+  },
+  "devDependencies": {
+    "should": "latest",
+    "mocha": "latest"
+  }
 }

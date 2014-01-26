@@ -176,6 +176,20 @@ count = (opts, done) ->
 
 # ##Private API##
 
+_log = ->
+  console.log "--->>>"
+  for arg in Array.prototype.slice.call(arguments, 0)
+    if arg
+      json_arg = if typeof arg == "string" then JSON.parse(arg) else arg
+      str_arg  = JSON.stringify(json_arg, null, 2)
+      if str_arg.length > 500
+        str_arg = str_arg.substring(str_arg, 500) + "..."
+    else
+      str_arg = arg
+    console.log(str_arg)
+  console.log "<<<---"
+
+
 _r_oper = (params, done) ->
   opts =
     uri : params.uri
@@ -200,7 +214,7 @@ _r_oper = (params, done) ->
 
   req opts, (err, res) ->
     if params.debug
-      console.log JSON.stringify(opts), err, (if res then JSON.stringify(res.body) else null)
+      _log err, opts, res.body
     if !err and res and res.body
       res = res.body
       try
