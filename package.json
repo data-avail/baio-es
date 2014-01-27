@@ -11,7 +11,7 @@
   "engines": [
     "node >= 0.4.0"
   ],
-  "main": "./es.js",
+  "main": "es",
   "dependencies": {
     "request": "2.27.0",
     "async": "latest"
