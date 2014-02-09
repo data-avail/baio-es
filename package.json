@@ -14,7 +14,7 @@
   "main": "es",
   "dependencies": {
     "request": "2.27.0",
-    "async": "latest"
+    "q": "~1.0.0"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "should": "latest",
-    "mocha": "latest"
+    "mocha": "latest",
+    "mocha-as-promised": "~2.0.0"
   }
 }

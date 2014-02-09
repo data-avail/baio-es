@@ -8,10 +8,11 @@
 #
 #Elastic search basic operations.
 
-async = require "async"
+Q = require "q"
 fs = require "fs"
 req = require "request"
 extend = require("util")._extend
+
 
 _config = null
 
@@ -120,12 +121,13 @@ deleteIndex = (opts, done) ->
 # + `opts.settings {object}` - index [settings](http://www.elasticsearch.org/guide/reference/api/index_/)
 # + `opts.settingsPath {string}` - path to file with index settings
 # Either `settings` or `settingsPath` must be presented.
+#returns Q promise
 
-createIndex = (opts, done) ->
+createIndex = (opts) ->
   settings = opts.settings
   if !settings
     settings = JSON.parse fs.readFileSync opts.settingsPath, "utf-8"
-  _r_oper extend({method : "post", body : settings}, opts), done
+  _r_oper extend({method : "post", body : settings}, opts)
 
 #**bkp (opts)**
 #
@@ -190,7 +192,7 @@ _log = ->
   console.log "<<<---"
 
 
-_r_oper = (params, done) ->
+_r_oper = (params) ->
   opts =
     uri : params.uri
   opts.uri ?= _config.uri
@@ -212,22 +214,20 @@ _r_oper = (params, done) ->
   ### method ###
   opts.method = params.method if params.method
 
-  req opts, (err, res) ->
-    if params.debug
-      _log err, opts, res.body
-    if !err and res and res.body
+  defered = Q.defer()
+  Q.denodeify(req)(opts)
+  .then((res) ->
+    if res and res.body
       res = res.body
-      try
-        res = JSON.parse(res) if typeof res == "string"
-      catch e
-        done res
-        return
-      if !res.error
-        done err, res
-      else
-        done res.error
-    else
-      done err
+      res = JSON.parse(res) if typeof res == "string"
+    defered.resolve(res)
+  , defered.reject)
+  .fin (res, err) ->
+    if params.debug
+      _log res, err
+
+  return defered.promise
+
 
 exports.setConfig = setConfig
 exports.createIndex = createIndex
