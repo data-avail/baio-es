@@ -66,4 +66,12 @@ describe "test elastic search functions", ->
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
 
-1
+    describe "search", ->
+
+      beforeEach ->
+        es.search(term : user : "baio")
+
+      it "http should be called with defined params", ->
+        assert = require("../assertion-results/search-user.json")
+        requestStub.calledOnce.should.be.truthy
+        requestStub.args[0][0].should.eql assert

@@ -1,4 +1,4 @@
-#Baio-mongo.js 1.0.2
+#baio-es
 #
 #http://github.com/data-avail/baio-es
 #
@@ -11,8 +11,10 @@
 
 fs = require "fs"
 extend = require "xtend"
-ioc = require "./ioc"
 Q = require "q"
+
+ioc = require "./ioc"
+queryTemplates = require "./queryTemplates"
 
 ioc.register "$http", -> require "./modules/$http"
 ioc.register "$log", -> require "./modules/$log"
@@ -88,7 +90,7 @@ removeIndex = (opts) ->
 #
 # + `uri {uri}` - connections string to elsatic search service
 # + `index {string}` - name of the index
-# + see also `sertConfig`
+# + see also `setConfig`
 # + `data {array[object]}`
 #     + `_id` - id of es document, optional
 #     + `_index` - index of es document, required (also could be be defined in opts.index or via `setConfig`)
@@ -125,53 +127,70 @@ bulk = (opts, docs) ->
   opts = extend(opts, {index : null, type : null, oper : "_bulk", method : "post", body : res})
   _r opts
 
-#uri
-#index
-#type
-#body
-query = (opts, body, done) ->
-  params = extend {body : body}, opts
-  params.oper = "_search" if !opts.id
-  _r_oper params, done
+# ##Query API##
 
+###
+  Search docs, by `search` query template
+###
+search = (opts) ->
+  return query "search", opts
 
-#uri
-#index
-#type
-#body
-count = (opts, done) ->
-  params = extend {oper : "_count"}, opts
-  params.body = params.body.query if params.body and params.body.query
-  _r_oper params, (err, data) ->
-    if !err
-      data = count : data.count
-    done err, data
+###
+  Query cout of documents by `count` query template
+###
+count = (opts) ->
+  return query "count", opts
+
+query = (name, opts) ->
+  #get query template
+  tmpl = queryTemplates[name]
+  if !tmpl
+    throw new Error "Argument out of range: template [#{name}] not found"
+  #stripe predfuned options
+  stripedOpts = _stripePredefinedOpts(opts)
+  tmplOpts = tmpl.req stripedOpts.custom
+  opts = extend stripedOpts.predefined, tmplOpts
+  promise = _r(opts)
+  promise.then (res) ->
+    tmpl.resp res
 
 # ##Private API##
+
+_stripePredefinedOpts = (opts) ->
+  #predefined options : [index, type, id, oper, body,  json]
+  predefined = {}
+  custom = extend opts, {}
+  for i in ["index", "type", "id", "oper", "body",  "json"]
+    if opts[i]
+      predefined[i] = opts[i]
+      delete custom[i]
+  predefined : predefined
+  custom : custom
+
 _r = (params) ->
   opts = getRequestOpts params
   log = ioc.get("$log").log
-  ioc.get("$http").request(opts).then (res) ->
+  promise = ioc.get("$http").request(opts)
+  promise.then (res) ->
     log null, res, opts
   ,(err) ->
     log err, null, opts
+  promise
 
 getRequestOpts = (params) ->
-  opts = extend params, {}
+  opts = extend {}, params
   if _config
     opts = extend _config, opts
   index = opts.index
   index = opts.index_prefix + "." + index if index and opts.index_prefix
   if index
     opts.uri += '/' + index
-  if params.type
-    opts.uri += '/' + params.type
-  if params.oper
-    opts.uri += '/' + params.oper
+  if opts.type
+    opts.uri += '/' + opts.type
+  if opts.oper
+    opts.uri += '/' + opts.oper
   if params.id
-    opts.uri += '/' + params.id
-  opts.json = params.json
-  opts.method = params.method if params.method
+    opts.uri += '/' + opts.id
   delete opts.index
   delete opts.type
   delete opts.oper
@@ -179,6 +198,7 @@ getRequestOpts = (params) ->
     delete opts.body
   if !opts.json
     delete opts.json
+  opts.method ?= "get"
   return opts
 
 exports.injector = (name, inject) ->
@@ -192,5 +212,6 @@ exports.createIndex = createIndex
 exports.removeIndex = removeIndex
 exports.bulk = bulk
 exports.query = query
+exports.search = search
 exports.count = count
-
+exports.queryTemplates = queryTemplates
