@@ -1,0 +1,5 @@
+{
+    "uri": "http://localhost:1111/_bulk",
+    "method": "post",
+    "body": "{\"index\":{\"_index\":\"stuff\",\"_type\":\"stuff\"}}\r\n{\"name\":\"name 1\",\"user\":\"baio\"}\r\n{\"index\":{\"_index\":\"stuff\"}}\r\n{\"name\":\"name 2\",\"user\":\"baio\"}\r\n"
+}

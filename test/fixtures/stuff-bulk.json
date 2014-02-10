@@ -1,0 +1,6 @@
+{
+    "docs": [
+        {"_index" : "stuff", "_type" : "stuff", "name" : "name 1", "user" : "baio"},
+        {"name" : "name 2", "user" : "baio"}
+    ]
+}

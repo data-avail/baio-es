@@ -1,0 +1,20 @@
+{
+    "uri": "http://localhost:1111/stuff",
+    "method": "post",
+    "json": {
+        "mappings": {
+            "stuff": {
+                "properties": {
+                    "user": {
+                        "index": "not_analyzed",
+                        "type": "string"
+                    },
+                    "name": {
+                        "index": "not_analyzed",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

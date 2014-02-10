@@ -1,12 +1,12 @@
 {
     "mappings": {
-        "route": {
+        "stuff": {
             "properties": {
                 "user": {
                     "index": "not_analyzed",
                     "type": "string"
                 },
-                "set_name": {
+                "name": {
                     "index": "not_analyzed",
                     "type": "string"
                 }

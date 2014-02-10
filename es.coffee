@@ -2,48 +2,107 @@
 #
 #http://github.com/data-avail/baio-es
 #
-#2013 Max Putilov, Data-Avail
+#2014 Max Putilov, Data-Avail
 #
 #Baio-es may be freely distributed under the MIT license.
 #
 #Elastic search basic operations.
+#
 
-Q = require "q"
 fs = require "fs"
-req = require "request"
-extend = require("util")._extend
+extend = require "xtend"
+ioc = require "./ioc"
+Q = require "q"
 
+ioc.register "$http", -> require "./modules/$http"
+ioc.register "$log", -> require "./modules/$log"
 
 _config = null
 
-#uri
-#timeout
+#**setConfig (opts)**
+#
+# Initialize config (optional)
+#
+#@parameters
+#
+# `config {Object}` contains fields
+#
+# + `config.uri {uri}` - connections string to elsatic search service
+# + `config.index` - elastic search default index
+# + `config.type` - elastic search default type
+# + `config.index_prefix` - compose `index` name using this prefix, such as `index_prefix.index`
+#
+#Each method accepts opts argument, which could contain the same config options : uri, index, type
+#(among other special params for the method), in which case config properties defined via `setConfig` will be
+#overriden for the method call. Otherwice `opts` from this method will be used.
 setConfig = (config) ->
   _config = config
 
-# ##bulk API##
-
-#**bulk = (uri, index, docs, done)**
+#**createIndex (opts)**
 #
-# Perfoms [bulk](http://www.elasticsearch.org/guide/reference/api/bulk/) elastic search opertayion.
+# Create new elastic search index.
 #
 #@parameters
 #
 # `opts {Object}` contains fields
 #
+# + `config` proerties, see `setConfig`
+# + `opts.settings {object}` - index [settings](http://www.elasticsearch.org/guide/reference/api/index_/)
+# Either `settings` or `settingsPath` must be presented.
+#
+#@returns Q promise
+
+createIndex = (opts) ->
+  if !opts or !opts.settings
+    throw new Error("Missed arg: opts.settings")
+  opts = extend(opts, {method : "post", json : opts.settings})
+  delete opts.settings
+  _r opts
+
+
+#**removeIndex (opts)**
+#
+# Delete elastic search index.
+#
+#@parameters
+#
+# `opts {Object}` contains fields
+#
+# + `opts.uri {uri}` - connections string to elsatic search service
+# + `opts.index {string}` - name of the index
+#
+#@returns Q promise
+
+removeIndex = (opts) ->
+  _r extend(opts, method : "delete")
+
+# ##bulk API##
+
+#**bulk = (opts)**
+#
+# Perfoms [bulk](http://www.elasticsearch.org/guide/reference/api/bulk/) operation.
+#
+#@parameters
+#
+# `opts {Object}` contains fields, optional
+#
 # + `uri {uri}` - connections string to elsatic search service
 # + `index {string}` - name of the index
+# + see also `sertConfig`
 # + `data {array[object]}`
-#     + `_id` - id of es document
-#     + `_type` - type of es document
+#     + `_id` - id of es document, optional
+#     + `_index` - index of es document, required (also could be be defined in opts.index or via `setConfig`)
+#     + `_type` - type of es document, required (also could be be defined in opts.type or via `setConfig`)
+#     + `_action` - bulk item action, default `index`, optional
 #
-
-bulk = (opts, docs, done) ->
+bulk = (opts, docs) ->
+  if Array.isArray(opts)
+    docs = opts
+    opts = {}
   if !Array.isArray(docs)
-    done "docs not array"
-  if !docs.length
-    done(null, [])
-    return
+    throw new Error("Wrong arg: docs must be array")
+  if _config
+    opts = extend _config, opts
   res = ""
   for doc in docs
     obj = { }
@@ -63,96 +122,8 @@ bulk = (opts, docs, done) ->
     if action != "delete"
       res += JSON.stringify(_doc)
       res += "\r\n"
-  oper_opts = extend(extend({}, opts), {uri : opts.uri, index : null, type : null, oper : "_bulk", method : "post", body : res})
-  _r_oper oper_opts, done
-
-map = (uri, fromIndex, toIndex, docsCount, map, done) ->
-  docsCount ?= 10000
-  req.get uri : "#{uri}/#{fromIndex}/_search", qs : {size : docsCount}, (err, res) ->
-    if !err
-      j = JSON.parse(res.body)
-      j = j.hits.hits.map (m) -> map m
-      bulk uri, toIndex, j, done
-    else
-      done err
-
-copy = (uri, fromIndex, toIndex, done) ->
-  map uri, fromIndex, toIndex, null, ((m) -> m), done
-
-
-#**getIndex (opts)**
-#
-# Get elastic search index.
-#
-#@parameters
-#
-# `opts {Object}` contains fields
-#
-# + `opts.uri {uri}` - connections string to elsatic search service
-# + `opts.index {string}` - name of the index
-
-getIndex = (opts, done) ->
-  _r_oper uri : opts.uri, index : opts.index, method : "get", done
-
-#**deleteIndex (opts)**
-#
-# Delete elastic search index.
-#
-#@parameters
-#
-# `opts {Object}` contains fields
-#
-# + `opts.uri {uri}` - connections string to elsatic search service
-# + `opts.index {string}` - name of the index
-
-deleteIndex = (opts, done) ->
-  _r_oper extend(method : "delete", opts), done
-
-#**createIndex (opts)**
-#
-# Create new elastic search index.
-#
-#@parameters
-#
-# `opts {Object}` contains fields
-#
-# + `opts.uri {uri}` - connections string to elsatic search service
-# + `opts.index {string}` - name of the index
-# + `opts.settings {object}` - index [settings](http://www.elasticsearch.org/guide/reference/api/index_/)
-# + `opts.settingsPath {string}` - path to file with index settings
-# Either `settings` or `settingsPath` must be presented.
-#returns Q promise
-
-createIndex = (opts) ->
-  settings = opts.settings
-  if !settings
-    settings = JSON.parse fs.readFileSync opts.settingsPath, "utf-8"
-  _r_oper extend({method : "post", body : settings}, opts)
-
-#**bkp (opts)**
-#
-# Copy data from one index to another.
-#
-#@parameters
-#
-# `opts {Object}` contains fields
-#
-# + `to {object}` - index to which data will be copied, see `createIndex`
-# + `batchSize {int}` - number of the items which will be copied from `from` to `to` index at once
-# + `from {string}` - name of the index from which data will be copied
-#
-#@worflow :
-# + delete `to` index
-# + create `to` index, see `createIndex`
-# + copy data from `from` to `to`
-
-bkp = (opts, done) ->
-  async.waterfall [
-    (ck) -> deleteIndex opts, ck
-    (ck) -> createIndex opts, ck
-    (ck) -> copy opts, ck
-  ], done
-
+  opts = extend(opts, {index : null, type : null, oper : "_bulk", method : "post", body : res})
+  _r opts
 
 #uri
 #index
@@ -177,27 +148,20 @@ count = (opts, done) ->
     done err, data
 
 # ##Private API##
+_r = (params) ->
+  opts = getRequestOpts params
+  log = ioc.get("$log").log
+  ioc.get("$http").request(opts).then (res) ->
+    log null, res, opts
+  ,(err) ->
+    log err, null, opts
 
-_log = ->
-  console.log "--->>>"
-  for arg in Array.prototype.slice.call(arguments, 0)
-    if arg
-      json_arg = if typeof arg == "string" then JSON.parse(arg) else arg
-      str_arg  = JSON.stringify(json_arg, null, 2)
-      if str_arg.length > 500
-        str_arg = str_arg.substring(str_arg, 500) + "..."
-    else
-      str_arg = arg
-    console.log(str_arg)
-  console.log "<<<---"
-
-
-_r_oper = (params) ->
-  opts =
-    uri : params.uri
-  opts.uri ?= _config.uri
-  index = params.index
-  index = params.index_prefix + "." + index if index and params.index_prefix
+getRequestOpts = (params) ->
+  opts = extend params, {}
+  if _config
+    opts = extend _config, opts
+  index = opts.index
+  index = opts.index_prefix + "." + index if index and opts.index_prefix
   if index
     opts.uri += '/' + index
   if params.type
@@ -206,38 +170,27 @@ _r_oper = (params) ->
     opts.uri += '/' + params.oper
   if params.id
     opts.uri += '/' + params.id
-  ### body ###
-  if typeof params.body == "object"
-    opts.json = params.body
-  else
-    opts.body = params.body
-  ### method ###
+  opts.json = params.json
   opts.method = params.method if params.method
+  delete opts.index
+  delete opts.type
+  delete opts.oper
+  if !opts.body
+    delete opts.body
+  if !opts.json
+    delete opts.json
+  return opts
 
-  defered = Q.defer()
-  Q.denodeify(req)(opts)
-  .then((res) ->
-    if res and res.body
-      res = res.body
-      res = JSON.parse(res) if typeof res == "string"
-    defered.resolve(res)
-  , defered.reject)
-  .fin (res, err) ->
-    if params.debug
-      _log res, err
-
-  return defered.promise
-
+exports.injector = (name, inject) ->
+  if inject == undefined
+    return ioc.get name
+  else
+    ioc.register name, inject
 
 exports.setConfig = setConfig
 exports.createIndex = createIndex
-exports.deleteIndex = deleteIndex
-exports.getIndex = getIndex
-
-exports.copy = copy
+exports.removeIndex = removeIndex
 exports.bulk = bulk
-exports.map = map
-exports.bkp = bkp
 exports.query = query
 exports.count = count
 

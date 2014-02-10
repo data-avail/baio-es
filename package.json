@@ -14,7 +14,10 @@
   "main": "es",
   "dependencies": {
     "request": "2.27.0",
-    "q": "~1.0.0"
+    "q": "~1.0.0",
+    "xtend": "~2.1.2",
+    "dependable": "~0.2.5",
+    "wire": "~0.10.5"
   },
   "repository": {
     "type": "git",
@@ -23,6 +26,7 @@
   "devDependencies": {
     "should": "latest",
     "mocha": "latest",
-    "mocha-as-promised": "~2.0.0"
+    "mocha-as-promised": "~2.0.0",
+    "sinon": "~1.8.1"
   }
 }
