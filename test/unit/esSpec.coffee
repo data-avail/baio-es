@@ -66,7 +66,7 @@ describe "test elastic search functions", ->
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
 
-    describe "search", ->
+    describe.only "search", ->
 
       beforeEach ->
         es.search(term : user : "baio")
@@ -76,12 +76,41 @@ describe "test elastic search functions", ->
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
 
+      describe.only "and get results", ->
+
+
     describe "count by search", ->
 
       beforeEach ->
         es.count(term : user : "baio")
 
       it "http should be called with defined params", ->
+        assert = require("../assertion-results/count-user.json")
+        requestStub.calledOnce.should.be.truthy
+        requestStub.args[0][0].should.eql assert
+
+    describe "custom search (bool)", ->
+
+      beforeEach ->
+
+        es.queryTemplates.count_bool_must =
+          parent : "count"
+          req : (opts) ->
+            bool : must : opts
+          resp: (res) ->
+            res
+
+        es.queryTemplates.is_baio_name_exists =
+          parent : "count_bool_must"
+          req : (opts) ->
+              [user : "baio", name : opts.name]
+          resp: (res) ->
+            res.length != 0
+
+      beforeEach ->
+        es.query("is_baio_name_exists", name : "name 1")
+
+      it.only "http should be called with defined params", ->
         assert = require("../assertion-results/count-user.json")
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
