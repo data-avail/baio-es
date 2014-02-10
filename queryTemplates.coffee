@@ -10,5 +10,6 @@ module.exports =
   count :
     req : (opts) ->
       oper : "_count"
+      json : opts
     resp : (res) ->
       res.count

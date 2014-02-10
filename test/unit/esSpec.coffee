@@ -75,3 +75,13 @@ describe "test elastic search functions", ->
         assert = require("../assertion-results/search-user.json")
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
+
+    describe "count by search", ->
+
+      beforeEach ->
+        es.count(term : user : "baio")
+
+      it "http should be called with defined params", ->
+        assert = require("../assertion-results/count-user.json")
+        requestStub.calledOnce.should.be.truthy
+        requestStub.args[0][0].should.eql assert
