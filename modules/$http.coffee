@@ -6,4 +6,5 @@ Q = require "q"
 exports.request = (opts) ->
   Q.denodeify(req)(opts)
   .then (res) ->
-    JSON.parse(res.body)
+    if res.body
+      JSON.parse(res.body)
