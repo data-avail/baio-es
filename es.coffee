@@ -51,7 +51,6 @@ setConfig = (config) ->
 #
 # + `config` proerties, see `setConfig`
 # + `opts.settings {object}` - index [settings](http://www.elasticsearch.org/guide/reference/api/index_/)
-# Either `settings` or `settingsPath` must be presented.
 #
 #@returns Q promise
 
