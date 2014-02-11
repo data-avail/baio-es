@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>es.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>es.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>baio-es</p>
+<p><a href="http://github.com/data-avail/baio-es">http://github.com/data-avail/baio-es</a></p>
+<p>2014 Max Putilov, Data-Avail</p>
+<p>Baio-es may be freely distributed under the MIT license.</p>
+<p>Elastic search basic operations.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+fs = <span class="hljs-built_in">require</span> <span class="hljs-string">"fs"</span>
+extend = <span class="hljs-built_in">require</span> <span class="hljs-string">"xtend"</span>
+Q = <span class="hljs-built_in">require</span> <span class="hljs-string">"q"</span>
+
+ioc = <span class="hljs-built_in">require</span> <span class="hljs-string">"./ioc"</span>
+queryTemplates = <span class="hljs-built_in">require</span> <span class="hljs-string">"./queryTemplates"</span>
+
+ioc.register <span class="hljs-string">"$http"</span>,<span class="hljs-function"> -&gt;</span> <span class="hljs-built_in">require</span> <span class="hljs-string">"./modules/$http"</span>
+ioc.register <span class="hljs-string">"$log"</span>,<span class="hljs-function"> -&gt;</span> <span class="hljs-built_in">require</span> <span class="hljs-string">"./modules/$log"</span>
+
+
+_config = <span class="hljs-literal">null</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p><strong>setConfig (opts)</strong></p>
+<p>Initialize config (optional)</p>
+<p>@parameters</p>
+<p><code>config {Object}</code> contains fields</p>
+<ul>
+<li><code>config.uri {uri}</code> - connections string to elsatic search service</li>
+<li><code>config.index</code> - elastic search default index</li>
+<li><code>config.type</code> - elastic search default type</li>
+<li><code>config.index_prefix</code> - compose <code>index</code> name using this prefix, such as <code>index_prefix.index</code></li>
+</ul>
+<p>Each method accepts opts argument, which could contain the same config options : uri, index, type
+(among other special params for the method), in which case config properties defined via <code>setConfig</code> will be
+overriden for the method call. Otherwice <code>opts</code> from this method will be used.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">setConfig</span> = <span class="hljs-params">(config)</span> -&gt;</span>
+  _config = config</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p><strong>createIndex (opts)</strong></p>
+<p>Create new elastic search index.</p>
+<p>@parameters</p>
+<p><code>opts {Object}</code> contains fields</p>
+<ul>
+<li><code>config</code> proerties, see <code>setConfig</code></li>
+<li><code>opts.settings {object}</code> - index <a href="http://www.elasticsearch.org/guide/reference/api/index_/">settings</a>
+Either <code>settings</code> or <code>settingsPath</code> must be presented.</li>
+</ul>
+<p>@returns Q promise</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-function"><span class="hljs-title">createIndex</span> = <span class="hljs-params">(opts)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> !opts <span class="hljs-keyword">or</span> !opts.settings
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">"Missed arg: opts.settings"</span>)
+  opts = extend(opts, {method : <span class="hljs-string">"post"</span>, json : opts.settings})
+  <span class="hljs-keyword">delete</span> opts.settings
+  _r opts</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><strong>removeIndex (opts)</strong></p>
+<p>Delete elastic search index.</p>
+<p>@parameters</p>
+<p><code>opts {Object}</code> contains fields</p>
+<ul>
+<li><code>opts.uri {uri}</code> - connections string to elsatic search service</li>
+<li><code>opts.index {string}</code> - name of the index</li>
+</ul>
+<p>@returns Q promise</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-function"><span class="hljs-title">removeIndex</span> = <span class="hljs-params">(opts)</span> -&gt;</span>
+  _r extend(opts, method : <span class="hljs-string">"delete"</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2 id="bulk-api">bulk API</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p><strong>bulk = (opts)</strong></p>
+<p>Perfoms <a href="http://www.elasticsearch.org/guide/reference/api/bulk/">bulk</a> operation.</p>
+<p>@parameters</p>
+<p><code>opts {Object}</code> contains fields, optional</p>
+<ul>
+<li><code>uri {uri}</code> - connections string to elsatic search service</li>
+<li><code>index {string}</code> - name of the index</li>
+<li>see also <code>setConfig</code></li>
+<li><code>data {array[object]}</code><ul>
+<li><code>_id</code> - id of es document, optional</li>
+<li><code>_index</code> - index of es document, required (also could be be defined in opts.index or via <code>setConfig</code>)</li>
+<li><code>_type</code> - type of es document, required (also could be be defined in opts.type or via <code>setConfig</code>)</li>
+<li><code>_action</code> - bulk item action, default <code>index</code>, optional</li>
+</ul>
+</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">bulk</span> = <span class="hljs-params">(opts, docs)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> Array.isArray(opts)
+    docs = opts
+    opts = {}
+  <span class="hljs-keyword">if</span> !Array.isArray(docs)
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">"Wrong arg: docs must be array"</span>)
+  <span class="hljs-keyword">if</span> _config
+    opts = extend _config, opts
+  res = <span class="hljs-string">""</span>
+  <span class="hljs-keyword">for</span> doc <span class="hljs-keyword">in</span> docs
+    obj = { }
+    index = doc._index
+    index ?= opts.index
+    index = opts.index_prefix + <span class="hljs-string">"."</span> + index <span class="hljs-keyword">if</span> opts.index_prefix
+    action = <span class="hljs-keyword">if</span> doc._action <span class="hljs-keyword">then</span> doc._action <span class="hljs-keyword">else</span> (<span class="hljs-keyword">if</span> opts.action <span class="hljs-keyword">then</span> opts.action <span class="hljs-keyword">else</span> <span class="hljs-string">"index"</span>)
+    type = <span class="hljs-keyword">if</span> doc._type <span class="hljs-keyword">then</span> doc._type <span class="hljs-keyword">else</span> opts.type
+    obj[action] = _index : index, _type : type, _id : doc._id
+    res += JSON.stringify(obj)
+    res += <span class="hljs-string">"\r\n"</span>
+    _doc = extend({}, doc)
+    <span class="hljs-keyword">delete</span> _doc._id
+    <span class="hljs-keyword">delete</span> _doc._index
+    <span class="hljs-keyword">delete</span> _doc._type
+    <span class="hljs-keyword">delete</span> _doc._action
+    <span class="hljs-keyword">if</span> action != <span class="hljs-string">"delete"</span>
+      res += JSON.stringify(_doc)
+      res += <span class="hljs-string">"\r\n"</span>
+  opts = extend(opts, {index : <span class="hljs-literal">null</span>, type : <span class="hljs-literal">null</span>, oper : <span class="hljs-string">"_bulk"</span>, method : <span class="hljs-string">"post"</span>, body : res})
+  _r opts</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <h2 id="query-api">Query API</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p><strong>search (opts)</strong></p>
+<p>perfoms <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html">query-dsl</a> request
+and returns <code>source</code> data</p>
+<p>@parameters</p>
+<p><code>opts {Object}</code></p>
+<ul>
+<li>see <code>setConfig</code> opts</li>
+<li>any <code>query-dsl</code> formatted request (without <code>query</code> container block)</li>
+</ul>
+<p>returns Q promise to find data</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">search</span> = <span class="hljs-params">(opts)</span> -&gt;</span>
+  <span class="hljs-keyword">return</span> query <span class="hljs-string">"search"</span>, opts</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p><strong>count (opts)</strong></p>
+<p>perfoms <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-count.html">count</a> query
+and returns documents count</p>
+<p>@parameters</p>
+<p><code>opts {Object}</code></p>
+<ul>
+<li>see <code>setConfig</code> opts</li>
+<li>any <code>count-api</code> formatted request</li>
+</ul>
+<p>returns Q promise to find documents count</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">count</span> = <span class="hljs-params">(opts)</span> -&gt;</span>
+  <span class="hljs-keyword">return</span> query <span class="hljs-string">"count"</span>, opts</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p><strong>query (opts)</strong></p>
+<p>Exceute custom query.
+Custom queries could be added via <code>queryTemplates</code> property.
+Library already contains 2 custom queries - <code>search</code> and <code>count</code>, see <code>queryTemplates</code> file.</p>
+<p>See also redme <code>custom queries</code> section</p>
+<p>returns Q promise to return result</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">query</span> = <span class="hljs-params">(name, opts)</span> -&gt;</span>
+  parsedOpts = parseQueryReq name, opts
+  <span class="hljs-built_in">console</span>.log JSON.stringify parsedOpts, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>
+  _r<span class="hljs-function"><span class="hljs-params">(parsedOpts)</span>.<span class="hljs-title">then</span> <span class="hljs-params">(res)</span> -&gt;</span> Q.fcall<span class="hljs-function"> -&gt;</span> parseQueryResp name, res</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <h2 id="private-api">Private API</h2>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-function"><span class="hljs-title">parseQueryResp</span> = <span class="hljs-params">(name, res)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>get query template</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  tmpl = queryTemplates[name]
+  <span class="hljs-keyword">if</span> !tmpl
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"Argument out of range: query template [<span class="hljs-subst">#{name}</span>] not found"</span>
+  <span class="hljs-keyword">if</span> tmpl.parent
+    res = parseQueryResp(tmpl.parent, res)
+  res = tmpl.resp res
+  <span class="hljs-keyword">return</span> res
+
+<span class="hljs-function"><span class="hljs-title">parseQueryReq</span> = <span class="hljs-params">(name, opts)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>get query template</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  tmpl = queryTemplates[name]
+  <span class="hljs-keyword">if</span> !tmpl
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"Argument out of range: query template [<span class="hljs-subst">#{name}</span>] not found"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>stripe predfefined options</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  stripedOpts = stripePredefinedOpts(opts)
+  res = tmpl.req stripedOpts.custom
+  <span class="hljs-keyword">if</span> tmpl.parent
+    res = parseQueryReq(tmpl.parent, res)
+  <span class="hljs-keyword">return</span> res
+
+<span class="hljs-function"><span class="hljs-title">stripePredefinedOpts</span> = <span class="hljs-params">(opts)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>predefined options : [index, type, id, oper, body,  json]</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  predefined = {}
+  custom = extend opts, {}
+  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-string">"index"</span>, <span class="hljs-string">"type"</span>, <span class="hljs-string">"id"</span>, <span class="hljs-string">"oper"</span>, <span class="hljs-string">"body"</span>,  <span class="hljs-string">"json"</span>]
+    <span class="hljs-keyword">if</span> opts[i]
+      predefined[i] = opts[i]
+      <span class="hljs-keyword">delete</span> custom[i]
+  predefined : predefined
+  custom : custom
+
+<span class="hljs-function"><span class="hljs-title">_r</span> = <span class="hljs-params">(params)</span> -&gt;</span>
+  opts = getRequestOpts params
+  log = ioc.get(<span class="hljs-string">"$log"</span>).log
+  promise = ioc.get(<span class="hljs-string">"$http"</span>).request(opts)
+  promise.<span class="hljs-keyword">then</span> <span class="hljs-function"><span class="hljs-params">(res)</span> -&gt;</span>
+    log <span class="hljs-literal">null</span>, res, opts
+  ,<span class="hljs-function"><span class="hljs-params">(err)</span> -&gt;</span>
+    log err, <span class="hljs-literal">null</span>, opts
+  promise
+
+<span class="hljs-function"><span class="hljs-title">getRequestOpts</span> = <span class="hljs-params">(params)</span> -&gt;</span>
+  opts = extend {}, params
+  <span class="hljs-keyword">if</span> _config
+    opts = extend _config, opts
+  index = opts.index
+  index = opts.index_prefix + <span class="hljs-string">"."</span> + index <span class="hljs-keyword">if</span> index <span class="hljs-keyword">and</span> opts.index_prefix
+  <span class="hljs-keyword">if</span> index
+    opts.uri += <span class="hljs-string">'/'</span> + index
+  <span class="hljs-keyword">if</span> opts.type
+    opts.uri += <span class="hljs-string">'/'</span> + opts.type
+  <span class="hljs-keyword">if</span> opts.oper
+    opts.uri += <span class="hljs-string">'/'</span> + opts.oper
+  <span class="hljs-keyword">if</span> params.id
+    opts.uri += <span class="hljs-string">'/'</span> + opts.id
+  <span class="hljs-keyword">delete</span> opts.index
+  <span class="hljs-keyword">delete</span> opts.type
+  <span class="hljs-keyword">delete</span> opts.oper
+  <span class="hljs-keyword">if</span> !opts.body
+    <span class="hljs-keyword">delete</span> opts.body
+  <span class="hljs-keyword">if</span> !opts.json
+    <span class="hljs-keyword">delete</span> opts.json
+  opts.method ?= <span class="hljs-string">"get"</span>
+  <span class="hljs-keyword">return</span> opts
+
+<span class="hljs-built_in">exports</span>.<span class="hljs-function"><span class="hljs-title">injector</span> = <span class="hljs-params">(name, inject)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> inject == <span class="hljs-literal">undefined</span>
+    <span class="hljs-keyword">return</span> ioc.get name
+  <span class="hljs-keyword">else</span>
+    ioc.register name, inject
+
+<span class="hljs-built_in">exports</span>.setConfig = setConfig
+<span class="hljs-built_in">exports</span>.createIndex = createIndex
+<span class="hljs-built_in">exports</span>.removeIndex = removeIndex
+<span class="hljs-built_in">exports</span>.bulk = bulk
+<span class="hljs-built_in">exports</span>.query = query
+<span class="hljs-built_in">exports</span>.search = search
+<span class="hljs-built_in">exports</span>.count = count
+<span class="hljs-built_in">exports</span>.queryTemplates = queryTemplates</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -39,7 +39,7 @@ describe "query results tests", ->
     beforeEach ->
       resultStub = require("../fixtures/server-results/user-count-result.json")
 
-    it should "return predefined results", ->
+    it "should return predefined results", ->
       es.count(term : user : "baio").then (res) ->
         res.should.equal(2)
 
@@ -72,6 +72,6 @@ describe "query results tests", ->
 
         es.query("is_user_name_exists", name : "name 1")
 
-      it.only "user should exists", ->
+      it "user should exists", ->
         es.query("is_user_name_exists", name : "name 1").then (res) ->
           res.should.truthy

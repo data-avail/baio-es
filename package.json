@@ -11,7 +11,7 @@
   "engines": [
     "node >= 0.4.0"
   ],
-  "main": "index.js",
+  "main": "build/es.js",
   "dependencies": {
     "request": "2.27.0",
     "q": "~1.0.0",
@@ -23,9 +23,16 @@
     "url": "git://github.com/data-avail/baio-es"
   },
   "devDependencies": {
-    "should": "latest",
-    "mocha": "latest",
+    "should": "~3.1.2",
+    "mocha": "~1.17.1",
     "mocha-as-promised": "~2.0.0",
-    "sinon": "~1.8.1"
+    "sinon": "~1.8.1",
+    "gulp-coffee": "~1.4.1",
+    "coffee-script": "~1.7.1",
+    "gulp": "~3.5.2",
+    "gulp-util": "~2.2.14"
+  },
+  "scripts": {
+    "test": "mocha test/unit/"
   }
 }
