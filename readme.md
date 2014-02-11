@@ -39,8 +39,8 @@ Module should expose `request(opts)` method with `Q` promise to return resulted 
     {
         uri : "http://...", //request uri to elastic search server
         method : "get", //get, post or delete http method
-        json : {}, //json formatted data for server
-        body : {}, //string data pass for server
+        json : {}, //json formatted data to server
+        body : {}, //string data pass to server
     }
 ```
 
@@ -77,7 +77,7 @@ Add custom query
 
 `parent` property
 
-+ Define which another `query.req` formatter will be used to format data, after current `req` formatting.
++ Define another `query.req` which will be used to format data, after current `req` formatting.
 + When data received from server they will be passed to previous formatters in chain then result of transformation will be passed to `resp` method.
 
 Chain of custom queries could be created as needed.
