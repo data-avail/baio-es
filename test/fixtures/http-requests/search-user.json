@@ -2,8 +2,10 @@
     "uri": "http://localhost:1111/stuff/_search",
     "method": "get",
     "json": {
-        "term": {
-            "user": "baio"
+        "query": {
+            "term": {
+                "user": "baio"
+            }
         }
     }
 }

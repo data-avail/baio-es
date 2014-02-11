@@ -1,0 +1,30 @@
+{"took": 11, "timed_out": false, "_shards": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+}, "hits": {
+    "total": 2,
+    "max_score": 0.30685282,
+    "hits": [
+        {
+            "_index": "stuff",
+            "_type": "stuff",
+            "_id": "yOgzKTYHRw-w9yOCewMHMA",
+            "_score": 0.30685282,
+            "_source": {
+                "user": "baio",
+                "name": "name 1"
+            }
+        },
+        {
+            "_index": "stuff",
+            "_type": "stuff",
+            "_id": "33qmY_IkTYyjCZ9QmKSSTA",
+            "_score": 0.30685282,
+            "_source": {
+                "user": "baio",
+                "name": "name 2"
+            }
+        }
+    ]
+}}

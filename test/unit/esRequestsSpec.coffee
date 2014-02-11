@@ -21,7 +21,7 @@ describe "test elastic search functions", ->
     requestStub = null
 
     beforeEach ->
-      requestStub = sinon.stub().returns(then : (func) -> func({}))
+      requestStub = sinon.stub().returns(then : (func) -> func({hits : {hits : []}}))
       http =
         request : requestStub
       es.injector("$http", http)
@@ -40,7 +40,7 @@ describe "test elastic search functions", ->
           es.createIndex(settings : require("../fixtures/stuff-index.json"))
 
         it "http should be called with defined params", ->
-          assert = require("../assertion-results/create-stuff-index.json")
+          assert = require("../fixtures/http-requests/create-stuff-index.json")
           requestStub.calledOnce.should.be.truthy
           requestStub.args[0][0].should.eql assert
 
@@ -51,7 +51,7 @@ describe "test elastic search functions", ->
         es.removeIndex(opts)
 
       it "http should be called with defined params", ->
-        assert = require("../assertion-results/delete-stuff-index.json")
+        assert = require("../fixtures/http-requests/delete-stuff-index.json")
         requestStub.calledOnce.should.be.truthy
         delete assert.json
         requestStub.args[0][0].should.eql assert
@@ -62,21 +62,19 @@ describe "test elastic search functions", ->
         es.bulk(require("../fixtures/stuff-bulk.json").docs)
 
       it "http should be called with defined params", ->
-        assert = require("../assertion-results/stuff-bulk.json")
+        assert = require("../fixtures/http-requests/stuff-bulk.json")
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
 
-    describe.only "search", ->
+    describe "search", ->
 
       beforeEach ->
         es.search(term : user : "baio")
 
       it "http should be called with defined params", ->
-        assert = require("../assertion-results/search-user.json")
+        assert = require("../fixtures/http-requests/search-user.json")
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
-
-      describe.only "and get results", ->
 
 
     describe "count by search", ->
@@ -85,32 +83,7 @@ describe "test elastic search functions", ->
         es.count(term : user : "baio")
 
       it "http should be called with defined params", ->
-        assert = require("../assertion-results/count-user.json")
+        assert = require("../fixtures/http-requests/count-user.json")
         requestStub.calledOnce.should.be.truthy
         requestStub.args[0][0].should.eql assert
 
-    describe "custom search (bool)", ->
-
-      beforeEach ->
-
-        es.queryTemplates.count_bool_must =
-          parent : "count"
-          req : (opts) ->
-            bool : must : opts
-          resp: (res) ->
-            res
-
-        es.queryTemplates.is_baio_name_exists =
-          parent : "count_bool_must"
-          req : (opts) ->
-              [user : "baio", name : opts.name]
-          resp: (res) ->
-            res.length != 0
-
-      beforeEach ->
-        es.query("is_baio_name_exists", name : "name 1")
-
-      it.only "http should be called with defined params", ->
-        assert = require("../assertion-results/count-user.json")
-        requestStub.calledOnce.should.be.truthy
-        requestStub.args[0][0].should.eql assert

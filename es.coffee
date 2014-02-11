@@ -19,6 +19,7 @@ queryTemplates = require "./queryTemplates"
 ioc.register "$http", -> require "./modules/$http"
 ioc.register "$log", -> require "./modules/$log"
 
+
 _config = null
 
 #**setConfig (opts)**
@@ -129,30 +130,33 @@ bulk = (opts, docs) ->
 
 # ##Query API##
 
-###
-  Search docs, by `search` query template
-###
+
+#  Search docs, by `search` query template
+
 search = (opts) ->
   return query "search", opts
 
-###
-  Query cout of documents by `count` query template
-###
+
+#  Query cout of documents by `count` query template
+
 count = (opts) ->
   return query "count", opts
+
+
+#  Query resquest template
 
 query = (name, opts) ->
   #get query template
   tmpl = queryTemplates[name]
   if !tmpl
-    throw new Error "Argument out of range: template [#{name}] not found"
+    throw new Error "Argument out of range: query template [#{name}] not found"
   #stripe predfuned options
   stripedOpts = _stripePredefinedOpts(opts)
   tmplOpts = tmpl.req stripedOpts.custom
   opts = extend stripedOpts.predefined, tmplOpts
-  promise = _r(opts)
-  promise.then (res) ->
-    tmpl.resp res
+  _r(opts).then (res) ->
+    Q.fcall -> tmpl.resp res
+
 
 # ##Private API##
 
