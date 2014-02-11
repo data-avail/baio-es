@@ -130,16 +130,48 @@ bulk = (opts, docs) ->
 
 # ##Query API##
 
-#  Search docs, by `search` query template
+#**search (opts)**
+#
+# perfoms [query-dsl](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html) request
+# and returns `source` data
+#
+#@parameters
+#
+# `opts {Object}`
+#
+#  + see `setConfig` opts
+#  + any `query-dsl` formatted request (without `query` container block)
+#
+# returns Q promise to find data
 search = (opts) ->
   return query "search", opts
 
-#  Query cout of documents by `count` query template
+#**count (opts)**
+#
+# perfoms [count](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-count.html) query
+# and returns documents count
+#
+#@parameters
+#
+# `opts {Object}`
+#
+#  + see `setConfig` opts
+#  + any `count-api` formatted request
+#
+# returns Q promise to find documents count
 count = (opts) ->
   return query "count", opts
 
 
-#  Query resquest template
+#**query (opts)**
+#
+# Exceute custom query.
+# Custom queries could be added via `queryTemplates` property.
+# Library already contains 2 custom queries - `search` and `count`, see `queryTemplates` file.
+#
+# See also redme `custom queries` section
+#
+# returns Q promise to return result
 query = (name, opts) ->
   parsedOpts = parseQueryReq name, opts
   console.log JSON.stringify parsedOpts, null, 2
