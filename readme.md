@@ -1,7 +1,7 @@
 # Elastic Search API
 ## Basic node.js library to access elastic search functionality.
 
-[![Build Status](https://travis-ci.org/data-avail/baio-es.png?branch=master)](https://travis-ci.org/data-avail/baio-es)
+[![Build Status](https://travis-ci.org/data-avail/baio-es.png)](https://travis-ci.org/data-avail/baio-es)
 
 ##Install
 `npm install baio-es`
@@ -40,7 +40,7 @@ Module should expose `request(opts)` method with `Q` promise to return resulted 
         uri : "http://...", //request uri to elastic search server
         method : "get", //get, post or delete http method
         json : {}, //json formatted data for server
-        json : {}, //string data pass for server
+        body : {}, //string data pass for server
     }
 ```
 
