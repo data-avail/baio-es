@@ -130,37 +130,46 @@ bulk = (opts, docs) ->
 
 # ##Query API##
 
-
 #  Search docs, by `search` query template
-
 search = (opts) ->
   return query "search", opts
 
-
 #  Query cout of documents by `count` query template
-
 count = (opts) ->
   return query "count", opts
 
 
 #  Query resquest template
-
 query = (name, opts) ->
+  parsedOpts = parseQueryReq name, opts
+  console.log JSON.stringify parsedOpts, null, 2
+  _r(parsedOpts).then (res) -> Q.fcall -> parseQueryResp name, res
+
+# ##Private API##
+
+parseQueryResp = (name, res) ->
   #get query template
   tmpl = queryTemplates[name]
   if !tmpl
     throw new Error "Argument out of range: query template [#{name}] not found"
-  #stripe predfuned options
-  stripedOpts = _stripePredefinedOpts(opts)
-  tmplOpts = tmpl.req stripedOpts.custom
-  opts = extend stripedOpts.predefined, tmplOpts
-  _r(opts).then (res) ->
-    Q.fcall -> tmpl.resp res
+  if tmpl.parent
+    res = parseQueryResp(tmpl.parent, res)
+  res = tmpl.resp res
+  return res
 
+parseQueryReq = (name, opts) ->
+  #get query template
+  tmpl = queryTemplates[name]
+  if !tmpl
+    throw new Error "Argument out of range: query template [#{name}] not found"
+  #stripe predfefined options
+  stripedOpts = stripePredefinedOpts(opts)
+  res = tmpl.req stripedOpts.custom
+  if tmpl.parent
+    res = parseQueryReq(tmpl.parent, res)
+  return res
 
-# ##Private API##
-
-_stripePredefinedOpts = (opts) ->
+stripePredefinedOpts = (opts) ->
   #predefined options : [index, type, id, oper, body,  json]
   predefined = {}
   custom = extend opts, {}

@@ -39,32 +39,39 @@ describe "query results tests", ->
     beforeEach ->
       resultStub = require("../fixtures/server-results/user-count-result.json")
 
-    it "http should be called with defined params", ->
+    it should "return predefined results", ->
       es.count(term : user : "baio").then (res) ->
         res.should.equal(2)
 
-  describe.skip "custom query template", ->
+  describe "custom query template", ->
 
     beforeEach ->
-
+      resultStub = require("../fixtures/server-results/user-count-result-1.json")
       es.queryTemplates.count_bool_must =
         parent : "count"
         req : (opts) ->
-          bool : must : opts.map (m) -> term : m
+          bool : must :  (p for own p of opts).map (p) ->
+            r = term : {}; r.term[p] = opts[p]; r;
         resp: (res) ->
           res
 
-      es.queryTemplates.is_user_name_exists =
-        parent : "count_bool_must"
-        req : (opts) ->
-          user : "baio", name : opts.name
-        resp: (res) ->
-          res != 0
+    it "should return predefined results", ->
+      es.query("count_bool_must", user : "baio").then (res) ->
+        res.should.equal(1)
 
-    beforeEach ->
-      es.query("is_baio_name_exists", name : "name 1")
 
-    it "http should be called with defined params", ->
-      assert = require("../fixtures/http-requests/count-user.json")
-      requestStub.calledOnce.should.be.truthy
-      requestStub.args[0][0].should.eql assert
+    describe "extend custom query template", ->
+
+      beforeEach ->
+        es.queryTemplates.is_user_name_exists =
+          parent : "count_bool_must"
+          req : (opts) ->
+            user : "baio", name : opts.name
+          resp: (res) ->
+            res != 0
+
+        es.query("is_user_name_exists", name : "name 1")
+
+      it.only "user should exists", ->
+        es.query("is_user_name_exists", name : "name 1").then (res) ->
+          res.should.truthy
