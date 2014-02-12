@@ -4,7 +4,7 @@ Q = require "q"
 
 #uri, method, body
 exports.request = (opts) ->
-  Q.denodeify(req)(opts)
-  .then (res) ->
-    if res.body
-      JSON.parse(res.body)
+  deferred = Q.defer()
+  req opts, (err, rsp, body) ->
+    deferred.resolve(body)
+  return deferred.promise

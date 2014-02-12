@@ -184,10 +184,15 @@ parseQueryReq = (name, opts) ->
     throw new Error "Argument out of range: query template [#{name}] not found"
   #stripe predfefined options
   stripedOpts = stripePredefinedOpts(opts)
-  res = tmpl.req stripedOpts.custom
+  ropts = stripedOpts.custom
+  res = tmpl.req ropts
   if tmpl.parent
     res = parseQueryReq(tmpl.parent, res)
-  return res
+  if tmpl.opts
+    res = extend tmpl.opts, res
+  res
+
+
 
 parseQueryResp = (name, res) ->
   #get query template
@@ -199,11 +204,11 @@ parseQueryResp = (name, res) ->
   res = tmpl.resp res
   return res
 
+
 stripePredefinedOpts = (opts) ->
-  #predefined options : [index, type, id, oper, body,  json]
   predefined = {}
   custom = extend opts, {}
-  for i in ["index", "type", "id", "oper", "body",  "json"]
+  for i in ["index", "type", "id", "oper", "body",  "json", "action"]
     if opts[i]
       predefined[i] = opts[i]
       delete custom[i]

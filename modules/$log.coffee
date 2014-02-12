@@ -1,7 +1,5 @@
 "use strict"
 
-util = require "util"
-
 exports.log = ->
   args = Array.prototype.slice.call(arguments, 0)
   console.log  "--->>>"
