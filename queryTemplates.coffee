@@ -6,6 +6,7 @@ module.exports =
       oper : "_search"
       json : query : opts
     resp : (res) ->
+      console.log res
       res.hits.hits.map((m) ->
         res = m._source
         res._id = m._id

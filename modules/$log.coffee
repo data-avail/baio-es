@@ -1,8 +1,10 @@
 "use strict"
 
+util = require "util"
+
 exports.log = ->
   args = Array.prototype.slice.call(arguments, 0)
-  console.log "--->>>"
+  console.log  "--->>>"
   for arg in args
     if arg
       json_arg = if typeof arg == "string" then JSON.parse(arg) else arg
@@ -11,5 +13,5 @@ exports.log = ->
         str_arg = str_arg.substring(str_arg, 500) + "..."
     else
       str_arg = arg
-    console.log(str_arg)
+    console.log str_arg
   console.log "<<<---"

@@ -173,20 +173,9 @@ count = (opts) ->
 # returns Q promise to return result
 query = (name, opts) ->
   parsedOpts = parseQueryReq name, opts
-  console.log JSON.stringify parsedOpts, null, 2
   _r(parsedOpts).then (res) -> Q.fcall -> parseQueryResp name, res
 
 # ##Private API##
-
-parseQueryResp = (name, res) ->
-  #get query template
-  tmpl = queryTemplates[name]
-  if !tmpl
-    throw new Error "Argument out of range: query template [#{name}] not found"
-  if tmpl.parent
-    res = parseQueryResp(tmpl.parent, res)
-  res = tmpl.resp res
-  return res
 
 parseQueryReq = (name, opts) ->
   #get query template
@@ -198,6 +187,16 @@ parseQueryReq = (name, opts) ->
   res = tmpl.req stripedOpts.custom
   if tmpl.parent
     res = parseQueryReq(tmpl.parent, res)
+  return res
+
+parseQueryResp = (name, res) ->
+  #get query template
+  tmpl = queryTemplates[name]
+  if !tmpl
+    throw new Error "Argument out of range: query template [#{name}] not found"
+  if tmpl.parent
+    res = parseQueryResp(tmpl.parent, res)
+  res = tmpl.resp res
   return res
 
 stripePredefinedOpts = (opts) ->
@@ -238,6 +237,7 @@ getRequestOpts = (params) ->
   delete opts.index
   delete opts.type
   delete opts.oper
+  delete opts.index_prefix
   if !opts.body
     delete opts.body
   if !opts.json
