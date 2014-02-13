@@ -216,14 +216,19 @@ stripePredefinedOpts = (opts) ->
   custom : custom
 
 _r = (params) ->
+  deferred = Q.defer()
   opts = getRequestOpts params
   log = ioc.get("$log").log
-  promise = ioc.get("$http").request(opts)
-  promise.then (res) ->
+  ioc.get("$http").request(opts).then (res) ->
     log null, res, opts
+    if !res
+      deferred.reject(error : "Server returns empty result, possible reason - server not runned")
+    else
+      deferred.resolve(res)
   ,(err) ->
     log err, null, opts
-  promise
+    deferred.resolve(err)
+  deferred.promise
 
 getRequestOpts = (params) ->
   opts = extend {}, params
