@@ -1,6 +1,13 @@
 "use strict"
 
 module.exports =
+  fields :
+    opts :
+      oper : "_search"
+    req : (opts) ->
+      json : opts
+    resp : (res) ->
+      res.hits.hits.map (m) -> m.fields
   search :
     opts :
       oper : "_search"
