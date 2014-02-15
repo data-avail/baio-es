@@ -14,7 +14,7 @@ describe "test elastic search functions", ->
     it "connection should be refused", ->
       opts = settings : require("../fixtures/stuff-index.json")
       es.createIndex(opts).fail (err) ->
-        err.toString().should.match /ECONNREFUSED/
+        err.error.should.match /Server returns empty result/
 
   describe "crud on stuff-index", ->
 

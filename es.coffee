@@ -125,7 +125,7 @@ bulk = (opts, docs) ->
       res += JSON.stringify(_doc)
       res += "\r\n"
   opts = extend(opts, {index : null, type : null, oper : "_bulk", method : "post", body : res})
-  _r opts
+  _r(opts).then -> ok : true
 
 # ##Query API##
 
@@ -222,7 +222,7 @@ _r = (params) ->
   ioc.get("$http").request(opts).then (res) ->
     log null, res, opts
     if !res
-      deferred.reject(error : "Server returns empty result, possible reason - server not runned")
+      deferred.reject(error : "Server returns empty result, possible reason - server not runned, or un on other port")
     else
       deferred.resolve(res)
   ,(err) ->
