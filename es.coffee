@@ -57,7 +57,7 @@ setConfig = (config) ->
 createIndex = (opts) ->
   if !opts or !opts.settings
     throw new Error("Missed arg: opts.settings")
-  opts = extend(opts, {method : "post", json : opts.settings})
+  opts = extend(opts, {method : "post", json : opts.settings, type : ""})
   delete opts.settings
   _r opts
 
@@ -76,7 +76,8 @@ createIndex = (opts) ->
 #@returns Q promise
 
 removeIndex = (opts) ->
-  _r extend(opts, method : "delete")
+  opts ?= {}
+  _r extend(opts, {method : "delete", type : ""})
 
 # ##bulk API##
 
@@ -175,6 +176,14 @@ query = (name, opts) ->
   parsedOpts = parseQueryReq name, opts
   _r(parsedOpts).then (res) -> Q.fcall -> parseQueryResp name, res
 
+
+remove = (opts, query) ->
+  opts ?= {}
+  opts.method = "delete"
+  q = query : query
+  params = extend(opts, {json : q})
+  _r params
+
 # ##Private API##
 
 parseQueryReq = (name, opts) ->
@@ -269,3 +278,4 @@ exports.query = query
 exports.search = search
 exports.count = count
 exports.queryTemplates = queryTemplates
+exports.remove = remove
