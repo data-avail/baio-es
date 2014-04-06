@@ -180,6 +180,7 @@ query = (name, opts) ->
 remove = (opts, query) ->
   opts ?= {}
   opts.method = "delete"
+  opts.oper = "_query"
   q = query : query
   params = extend(opts, {json : q})
   _r params
